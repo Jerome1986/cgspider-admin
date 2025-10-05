@@ -1,0 +1,14 @@
+@use './variables.scss' as *;
+@use './mixins.scss' as *;
+
+body {
+  padding: 0;
+  margin: 0;
+  background-color: #f7fafc;
+  box-sizing: border-box;
+}
+
+image {
+  width: 100%;
+  height: 100%;
+}
