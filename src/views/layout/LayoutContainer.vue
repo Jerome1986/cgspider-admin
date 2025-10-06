@@ -92,20 +92,20 @@ const loginOut = () => {
           </el-menu-item>
         </el-sub-menu>
         <!--标签管理-->
-        <el-sub-menu index="/tagManage">
+        <el-sub-menu index="/tag">
           <template #title>
             <el-icon>
               <CollectionTag />
             </el-icon>
             <span>标签管理</span>
           </template>
-          <el-menu-item index="/tagManage/tag">
+          <el-menu-item index="/tag/attribute">
             <el-icon>
               <PriceTag />
             </el-icon>
             <span>属性标签</span>
           </el-menu-item>
-          <el-menu-item index="/tagManage/color">
+          <el-menu-item index="/tag/color">
             <el-icon>
               <Cloudy />
             </el-icon>

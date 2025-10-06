@@ -13,3 +13,4 @@ export default pinia
 export * from './modules/user.ts'
 export * from './modules/menu.ts'
 export * from './modules/cate.ts'
+export * from './modules/tags.ts'

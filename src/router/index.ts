@@ -28,6 +28,22 @@ const router = createRouter({
             },
             { path: '/cate/group', component: () => import('@/views/cate/Group/GroupPage.vue') }
           ]
+        },
+        //   标签
+        {
+          path: '/tag',
+          redirect: '/tag/attribute',
+          component: () => import('@/views/tag/TagPage.vue'),
+          children: [
+            {
+              path: '/tag/attribute',
+              component: () => import('@/views/tag/attributeTags/AttributeTags.vue')
+            },
+            {
+              path: '/tag/color',
+              component: () => import('@/views/tag/colorTags/ColorTags.vue')
+            }
+          ]
         }
       ]
     }
