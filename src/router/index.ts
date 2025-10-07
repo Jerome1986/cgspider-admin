@@ -44,7 +44,11 @@ const router = createRouter({
               component: () => import('@/views/tag/colorTags/ColorTags.vue')
             }
           ]
-        }
+        },
+        //  素材
+        { path: '/material', component: () => import('@/views/material/MaterialPage.vue') },
+        //  批量发布
+        { path: '/many', component: () => import('@/views/manySend/ManySend.vue') }
       ]
     }
   ]

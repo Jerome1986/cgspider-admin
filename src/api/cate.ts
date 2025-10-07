@@ -119,3 +119,16 @@ export const searchCateApi = (
     data: { type, searchVal, pageNum, pageSize, parentId }
   })
 }
+
+/**
+ * 根据类型一次性获取分类--用于联级选择器
+ *  /cate-all
+ * @param type - 页面类型
+ */
+export const cateAllApi = (type: string) => {
+  return request<Category[]>({
+    method: 'GET',
+    url: '/cate-all',
+    params: { type }
+  })
+}

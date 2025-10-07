@@ -21,6 +21,7 @@ export interface ColumnDef {
   width?: string | number
   slot?: string
   formatter?: (cellValue: unknown, row: unknown) => unknown
+  component?: string | Component
 }
 
 // props（去掉 page / pageSize，避免和 defineModel 冲突）

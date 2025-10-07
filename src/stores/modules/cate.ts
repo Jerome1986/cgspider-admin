@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { cateAllGetApi, cateListGetApi, searchCateApi } from '@/api/cate.ts'
+import { cateAllApi, cateAllGetApi, cateListGetApi, searchCateApi } from '@/api/cate.ts'
 import type { CateEditForm, Category, CategoryPageResult } from '@/types/Cate.ts'
+import { buildTree, type CategoryNode } from '@/utils/buildTree.ts'
 
 export const useCateStore = defineStore(
   'cgs-cate',
@@ -90,6 +91,13 @@ export const useCateStore = defineStore(
       levelGet(level, res.data)
     }
 
+    // 联级选择器分类--根据类型一次性获取分类
+    const cateOptions = ref<CategoryNode[]>([])
+    const allCateGet = async (type: string) => {
+      const res = await cateAllApi(type)
+      cateOptions.value = buildTree(res.data)
+    }
+
     return {
       cateList,
       subCateList,
@@ -102,7 +110,9 @@ export const useCateStore = defineStore(
       topCateCurrentId,
       setTopCurrentId,
       topCateListGet,
-      searchCateListGet
+      searchCateListGet,
+      cateOptions,
+      allCateGet
     }
   },
   {

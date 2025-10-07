@@ -199,7 +199,9 @@ onMounted(async () => {
       <template #extra>
         <div style="display: flex">
           <TypeHeader @changeType="handleChangeType"></TypeHeader>
-          <el-button type="primary" @click="onAddChannel">添加分类</el-button>
+          <el-button type="primary" @click="onAddChannel" style="margin-left: 20px"
+            >添加分类</el-button
+          >
         </div>
         <SearchPage @search="handleSearch" @clear="handleClearSearch"></SearchPage>
       </template>

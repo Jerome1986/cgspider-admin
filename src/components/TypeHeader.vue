@@ -28,7 +28,6 @@ const handleChange = (val: MenuItem) => {
 
 <style scoped lang="scss">
 .list {
-  margin-right: 40px;
   display: flex;
   align-items: center;
   gap: 16px;
