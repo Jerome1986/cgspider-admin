@@ -183,7 +183,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="userManager">
+  <div class="cateManager">
     <BaseTable
       page-title="一级分类"
       :data="cateStore.cateList"
@@ -219,7 +219,7 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.userManager {
+.cateManager {
   height: 100%;
 }
 </style>

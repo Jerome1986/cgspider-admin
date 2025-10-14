@@ -32,7 +32,8 @@ const formModelDef = ref<MaterialItem>({
   files_url: '', //素材文件
   aittributeTags: [], //标签
   colorTags: [], //颜色标签
-  type: '' //类型-必填
+  type: '', //类型-必填
+  keywords: ''
 })
 
 const formModel = ref<MaterialItem>(formModelDef.value)
@@ -195,7 +196,8 @@ const onSubmit = async () => {
         formModel.value.files_url,
         formModel.value.aittributeTags,
         formModel.value.colorTags,
-        formModel.value.type
+        formModel.value.type,
+        formModel.value.keywords
       )
       ElMessage.success('添加成功')
     }
@@ -282,6 +284,10 @@ onMounted(async () => {
               <div class="el-upload__tip">请上传素材压缩包</div>
             </template>
           </el-upload>
+        </el-form-item>
+        <!-- 关键词 -->
+        <el-form-item label="关键词" prop="keywords">
+          <el-input v-model="formModel.keywords" placeholder="请输入一句话/多个词语"></el-input>
         </el-form-item>
         <!--   标签     -->
         <el-form-item label="标签" prop="tags">

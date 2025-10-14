@@ -56,6 +56,7 @@ export const materialDeleteApi = (materialId: string) => {
  * @param aittributeTags
  * @param colorTags
  * @param type
+ * @param keywords
  */
 export const materialAddOneApi = (
   top_id: string,
@@ -67,7 +68,8 @@ export const materialAddOneApi = (
   files_url: string,
   aittributeTags: string[] = [],
   colorTags: string[] = [],
-  type: string
+  type: string,
+  keywords: string
 ) => {
   return request<addResult>({
     method: 'POST',
@@ -82,7 +84,8 @@ export const materialAddOneApi = (
       files_url,
       aittributeTags,
       colorTags,
-      type
+      type,
+      keywords
     }
   })
 }

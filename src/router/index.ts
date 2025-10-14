@@ -48,7 +48,12 @@ const router = createRouter({
         //  素材
         { path: '/material', component: () => import('@/views/material/MaterialPage.vue') },
         //  批量发布
-        { path: '/many', component: () => import('@/views/manySend/ManySend.vue') }
+        { path: '/many', component: () => import('@/views/manySend/ManySend.vue') },
+        // 水印
+        {
+          path: '/watermark',
+          component: () => import('@/views/watermarkManage/WatermarkManage.vue')
+        }
       ]
     }
   ]

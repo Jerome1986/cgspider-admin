@@ -24,6 +24,8 @@ export interface MaterialItem {
   colorTags?: string[]
   /** 分类类型 (例: "材质") */
   type: string
+  /** 关键词 */
+  keywords: string
   /** 状态 (1=启用, 0=禁用) */
   status?: number
   /** 创建时间 (ISO 格式) */

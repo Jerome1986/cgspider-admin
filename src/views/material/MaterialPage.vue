@@ -39,6 +39,7 @@ const dialog = ref()
 const handleSizeChange = async (size: number) => {
   loading.value = true
   console.log('条数', size)
+  param.value.pageNum = 1
   param.value.pageSize = size
   await materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
   loading.value = false
@@ -140,6 +141,7 @@ onMounted(async () => {
         show-overflow-tooltip
         prop="files_url"
       ></el-table-column>
+      <el-table-column label="关键词" align="center" prop="keywords"></el-table-column>
       <el-table-column label="标签" align="center" prop="aittributeTags">
         <template #default="{ row }">
           <span v-if="row.aittributeTags?.length">
