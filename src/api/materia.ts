@@ -69,7 +69,7 @@ export const materialAddOneApi = (
   aittributeTags: string[] = [],
   colorTags: string[] = [],
   type: string,
-  keywords: string
+  keywords?: string
 ) => {
   return request<addResult>({
     method: 'POST',
