@@ -31,10 +31,16 @@ export interface CategoryPageResult {
 
 // 弹窗表单模型类型
 export interface CateEditForm {
+  /** 分类ID */
   _id?: string
+  /** 分类名称 */
   name: string
+  /** 英文名称 */
   en_name: string
+  /** 所属类型 */
   type: string
+  /** 父级ID */
   parentId?: string | null
+  /** 父级名称 */
   parentName?: string
 }

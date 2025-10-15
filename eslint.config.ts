@@ -4,6 +4,9 @@ import pluginPrettier from 'eslint-plugin-prettier'
 
 export default defineConfigWithVueTs(
   {
+    ignores: ['dist/**', 'node_modules/**', '**/*.js']
+  },
+  {
     files: ['**/*.{ts,tsx,vue}'],
     plugins: {
       prettier: pluginPrettier

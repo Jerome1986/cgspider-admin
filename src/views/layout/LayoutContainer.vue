@@ -127,7 +127,7 @@ const loginOut = () => {
           <span>商品管理</span>
         </el-menu-item>
         <!--订单管理-->
-        <el-menu-item index="/orderManage">
+        <el-menu-item index="/order">
           <el-icon>
             <Collection />
           </el-icon>

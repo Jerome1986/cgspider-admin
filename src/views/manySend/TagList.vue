@@ -44,8 +44,13 @@ onMounted(async () => {
   <div class="tagList">
     <div class="title">选择标签:</div>
     <div class="list">
-      <div class="tagItem" v-for="item in tagStore.aittribuleOptions" :key="item.value"
-        :class="{ tagItemActive: (item as any).isActive }" @click="handleTag(item.value)">
+      <div
+        class="tagItem"
+        v-for="item in tagStore.aittribuleOptions"
+        :key="item.value"
+        :class="{ tagItemActive: (item as any).isActive }"
+        @click="handleTag(item.value)"
+      >
         {{ item.label }}
       </div>
     </div>

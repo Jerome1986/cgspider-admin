@@ -53,7 +53,8 @@ const router = createRouter({
         {
           path: '/watermark',
           component: () => import('@/views/watermarkManage/WatermarkManage.vue')
-        }
+        },
+        { path: '/order', component: () => import('@/views/orderManage/OrderManage.vue') }
       ]
     }
   ]

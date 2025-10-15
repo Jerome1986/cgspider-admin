@@ -5,7 +5,7 @@ import {
   aittribuleTagGetApi,
   colorTagAllApi,
   colorTagGetApi,
-  searchAittribuleTagApi,
+  searchAittribuleTagApi
 } from '@/api/tag.ts'
 import type { TagAittribuleItem, TagColorItem } from '@/types/Tags'
 
@@ -21,11 +21,7 @@ export const useTagStore = defineStore(
     //  属性标签
     const aittributeTag = ref<TagAittribuleItem[]>([])
     // 获取属性标签
-    const aittribuleTagGet = async (
-      type: string,
-      pageNum: number,
-      pageSize: number,
-    ) => {
+    const aittribuleTagGet = async (type: string, pageNum: number, pageSize: number) => {
       const res = await aittribuleTagGetApi(type, pageNum, pageSize)
       console.log('标签结果', res.data)
       aittributeTag.value = res.data.list
@@ -38,7 +34,7 @@ export const useTagStore = defineStore(
       const res = await aittribuleAllApi(type)
       aittribuleOptions.value = res.data.map((item) => ({
         label: item.name,
-        value: item._id,
+        value: item._id
       }))
     }
     // 根据类型和标签名称搜索属性标签
@@ -46,14 +42,9 @@ export const useTagStore = defineStore(
       type: string,
       searchVal: string,
       pageNum: number,
-      pageSize: number,
+      pageSize: number
     ) => {
-      const res = await searchAittribuleTagApi(
-        type,
-        searchVal,
-        pageNum,
-        pageSize,
-      )
+      const res = await searchAittribuleTagApi(type, searchVal, pageNum, pageSize)
       aittribuleTagTotal.value = res.data.total
       aittributeTag.value = res.data.list
     }
@@ -66,11 +57,7 @@ export const useTagStore = defineStore(
     const colorList = ref<TagColorItem[]>([])
     const colorTotal = ref(0)
 
-    const getColorTagList = async (
-      type: string,
-      pageNum: number,
-      pageSize: number,
-    ) => {
+    const getColorTagList = async (type: string, pageNum: number, pageSize: number) => {
       const res = await colorTagGetApi(type, pageNum, pageSize)
       console.log('获取', res.data)
       colorList.value = res.data.list
@@ -84,7 +71,7 @@ export const useTagStore = defineStore(
       console.log('颜色', res.data)
       colorOptions.value = res.data.map((item) => ({
         label: item.color,
-        value: item.color,
+        value: item.color
       }))
     }
 
@@ -99,10 +86,10 @@ export const useTagStore = defineStore(
       colorTotal,
       getColorTagList,
       colorOptions,
-      colorAllGet,
+      colorAllGet
     }
   },
   {
-    persist: true,
-  },
+    persist: true
+  }
 )
