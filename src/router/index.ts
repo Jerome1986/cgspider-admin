@@ -54,7 +54,10 @@ const router = createRouter({
           path: '/watermark',
           component: () => import('@/views/watermarkManage/WatermarkManage.vue')
         },
-        { path: '/order', component: () => import('@/views/orderManage/OrderManage.vue') }
+        // 订单管理
+        { path: '/order', component: () => import('@/views/orderManage/OrderManage.vue') },
+        // 会员产品管理
+        { path: '/vip', component: () => import('@/views/vipPro/VipPro.vue') }
       ]
     }
   ]
