@@ -89,3 +89,23 @@ export const materialAddOneApi = (
     }
   })
 }
+
+/**
+ * 根据名称搜索素材
+ * @param searchVal - 搜索内容
+ * @param materialType - 素材对应的类型
+ * @param pageNum - 页码
+ * @param pageSize - 条数
+ */
+export const materialSearchApi = (
+  searchVal: string,
+  materialType: string,
+  pageNum: number,
+  pageSize: number
+) => {
+  return request<MaterialPageResult>({
+    method: 'POST',
+    url: '/material-adminSearch',
+    data: { searchVal, materialType, pageNum, pageSize }
+  })
+}

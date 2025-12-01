@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Edit, Delete } from '@element-plus/icons-vue'
+import { Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import TypeHeader from '@/components/TypeHeader.vue'
 import { useCateStore, useMenuStore, useTagStore } from '@/stores'
 import type { CateEditForm } from '@/types/Cate.ts'
 import type { MaterialItem } from '@/types/Material'
-import { materiaGetApi, materialDeleteApi } from '@/api/materia.ts'
+import { materiaGetApi, materialDeleteApi, materialSearchApi } from '@/api/materia.ts'
 import PageContainer from '@/components/PageContainer.vue'
 import MaterialChannel from '@/views/material/MaterialChannel.vue'
 import { getTagName } from '@/utils/getTagName.ts'
@@ -33,6 +33,34 @@ const materialListGet = async (type: string, pageNum: number, pageSize: number) 
   total.value = res.data.total
 }
 
+// 搜索
+const searchValue = ref('')
+const handleSearch = async (isPage: boolean = true) => {
+  console.log(searchValue.value)
+  if (!searchValue.value) return ElMessage.warning('搜索内容不存在')
+  // 点击搜索重置页码
+  if (isPage) {
+    param.value.pageNum = 1
+  }
+  // 请求搜索
+  const res = await materialSearchApi(
+    searchValue.value,
+    menuStore.currentMenu,
+    param.value.pageNum,
+    param.value.pageSize
+  )
+  materialList.value = res.data.list
+  total.value = res.data.total
+}
+
+// 清除搜索
+const handleClearSearch = () => {
+  console.log(searchValue.value)
+  // 点击搜索重置页码
+  param.value.pageNum = 1
+  materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
+}
+
 // 弹窗
 const dialog = ref()
 
@@ -41,7 +69,13 @@ const handleSizeChange = async (size: number) => {
   console.log('条数', size)
   param.value.pageNum = 1
   param.value.pageSize = size
-  await materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
+  // 如果是搜索渲染搜索结果
+  if (searchValue.value) {
+    await handleSearch(false)
+  } else {
+    await materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
+  }
+
   loading.value = false
 }
 
@@ -49,7 +83,12 @@ const handleCurrentChange = async (current: number) => {
   loading.value = true
   console.log('页码', current)
   param.value.pageNum = current
-  await materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
+  // 如果是搜索渲染搜索结果
+  if (searchValue.value) {
+    await handleSearch(false)
+  } else {
+    await materialListGet(menuStore.currentMenu, param.value.pageNum, param.value.pageSize)
+  }
   loading.value = false
 }
 
@@ -91,6 +130,8 @@ function onDelChannel(row: CateEditForm) {
 const handleChangeType = async (type: string) => {
   console.log(type)
   loading.value = true
+  // 清空搜索框
+  searchValue.value = ''
   // 切换类型重置页码
   param.value.pageNum = 1
   await materialListGet(type, param.value.pageNum, param.value.pageSize)
@@ -120,6 +161,16 @@ onMounted(async () => {
       <TypeHeader @changeType="handleChangeType"></TypeHeader>
     </div>
     <template #extra>
+      <el-input
+        v-model="searchValue"
+        style="width: 240px; margin-right: 20px"
+        placeholder="根据名称搜索素材"
+        :prefix-icon="Search"
+        clearable
+        @clear="handleClearSearch"
+        @keydown.enter="handleSearch"
+      />
+      <el-button type="danger" @click="handleSearch">搜索</el-button>
       <el-button type="success" @click="onManyAdd">批量发布</el-button>
       <el-button type="primary" @click="onAddChannel">添加素材</el-button>
     </template>
