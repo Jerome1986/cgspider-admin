@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, type FormInstance } from 'element-plus'
 import type { Product } from '@/types/VipPro'
 import { addProduct, updateProduct } from '@/api/vipPro.ts'
 
 // 表单
-const formRef = ref()
+const formRef = ref<FormInstance>()
 const dialogVisible = ref(false)
+const submitting = ref(false)
 
 // 准备数据和校验规则
 const formModel = ref<Product>({
@@ -46,6 +47,8 @@ const rules = ref({
 // 提交表单
 const emit = defineEmits(['success'])
 const onSubmit = async () => {
+  if (submitting.value || !formRef.value) return
+  submitting.value = true
   try {
     // 验证表单
     await formRef.value.validate()
@@ -66,6 +69,8 @@ const onSubmit = async () => {
     emit('success')
   } catch (error) {
     console.error('提交失败:', error)
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -75,17 +80,28 @@ const open = (row: Product) => {
 
   // 设置表单数据
   formModel.value = {
-    _id: row._id,
+    _id: row._id || '',
+    isActive: row.isActive ?? true,
     dailyDownloadLimit: row.dailyDownloadLimit,
     description: row.description,
     en_description: row.en_description,
     en_name: row.en_name,
     en_productType: row.en_productType,
     goldCoinsAmount: row.goldCoinsAmount,
-    membershipType: row.membershipType,
+    membershipType:
+      row.membershipType === '年费会员'
+        ? 'annual'
+        : row.membershipType === '永久会员'
+          ? 'permanent'
+          : row.membershipType || '',
     price: row.price,
     productName: row.productName,
-    productType: row.productType
+    productType:
+      row.productType === '金币充值'
+        ? 'gold'
+        : row.productType === '购买会员'
+          ? 'membership'
+          : row.productType || ''
   }
 }
 
@@ -170,7 +186,7 @@ defineExpose({
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="onSubmit"> 确认 </el-button>
+          <el-button type="primary" :loading="submitting" @click="onSubmit"> 确认 </el-button>
         </span>
       </template>
     </el-dialog>

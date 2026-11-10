@@ -23,7 +23,9 @@ export const useUserStore = defineStore(
     }
 
     // 清空用户信息--退出登录
-    const clearUserInfo = () => createDefaultUserInfo()
+    const clearUserInfo = () => {
+      userInfo.value = createDefaultUserInfo()
+    }
 
     return {
       userInfo,

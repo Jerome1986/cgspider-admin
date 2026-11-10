@@ -9,7 +9,7 @@ export interface Product {
   productType: string
 
   /** 产品类型（英文） */
-  en_productType: string
+  en_productType?: string
 
   /** 产品名称 */
   productName: string
@@ -27,7 +27,7 @@ export interface Product {
   membershipType: string
 
   /** 每日下载限制 */
-  dailyDownloadLimit: string
+  dailyDownloadLimit: number | string
 
   /** 描述 */
   description: string

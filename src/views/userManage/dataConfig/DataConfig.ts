@@ -21,6 +21,8 @@ export const columns: ColumnDef[] = [
 
 // 弹窗表单模型类型
 export interface UserEditForm {
+  /** 编辑时原始余额 */
+  expectedCoins?: number
   _id?: string
   username: string
   role: UserRole
@@ -38,7 +40,10 @@ export const formFields: Field<UserEditForm>[] = [
     props: { placeholder: '选择用户身份', style: 'width: 160px' },
     options: [
       { label: '普通用户', value: 'user' },
-      { label: '管理员', value: 'admin' }
+      { label: '管理员', value: 'admin' },
+      { label: '年费会员', value: 'annual' },
+      { label: '永久会员', value: 'permanent' },
+      { label: '历史VIP', value: 'vip' }
     ]
   },
   { prop: 'coins', label: '金币', component: 'el-input-number', props: { min: 0 } },

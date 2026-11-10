@@ -5,6 +5,7 @@ import {
   ElMessage,
   genFileId,
   type UploadInstance,
+  type FormInstance,
   type UploadProps,
   type UploadRawFile,
   type UploadUserFile
@@ -12,6 +13,7 @@ import {
 import type { MaterialItem } from '@/types/Material'
 import { useCateStore, useMenuStore, useTagStore } from '@/stores'
 import { materialAddOneApi, materialUpdateApi } from '@/api/materia.ts'
+import { uploadAsset } from '@/utils/request'
 
 // 定义store
 const menuStore = useMenuStore()
@@ -19,6 +21,15 @@ const cateStore = useCateStore()
 const tagStore = useTagStore()
 
 const dialogVisible = ref(false)
+const submitting = ref(false)
+const materialCateOptions = computed(() =>
+  cateStore.cateOptions.map((node) => ({
+    ...node,
+    children: node.children?.map((child) => ({ ...child, children: undefined }))
+  }))
+)
+const handleUploadCover: UploadProps['httpRequest'] = (options) => uploadAsset(options.file, true)
+const handleUploadFile: UploadProps['httpRequest'] = (options) => uploadAsset(options.file, false)
 
 // 准备数据和校验规则
 const formModelDef = ref<MaterialItem>({
@@ -72,7 +83,12 @@ const open = async (row: MaterialItem) => {
   dialogVisible.value = true
   if (row._id) {
     // 编辑
-    formModel.value = { ...row }
+    formModel.value = {
+      ...row,
+      aittributeTags: [...(row.aittributeTags || [])],
+      colorTags: [...(row.colorTags || [])],
+      fileUrls: [...(row.fileUrls || [])]
+    }
     // 回显分类 - 过滤掉空值，避免 cascader 无法匹配
     cateArray.value = [row.top_id, row.sub_id, row.third_id].filter((id) => id) as string[]
     console.log('cateArray', cateArray.value)
@@ -93,7 +109,7 @@ const open = async (row: MaterialItem) => {
   } else {
     console.log('添加')
     // 添加
-    formModel.value = { ...formModelDef.value }
+    formModel.value = { ...formModelDef.value, aittributeTags: [], colorTags: [], fileUrls: [] }
     formModel.value.type = menuStore.currentMenu
     cateArray.value = []
     coverFileList.value = []
@@ -106,17 +122,10 @@ const uploadRef = ref<UploadInstance>()
 //限制图片格式
 const beforeUploadCover = (rawFile: UploadRawFile) => {
   // 允许的图片格式
-  const allowedImageTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/bmp',
-    'image/webp',
-    'image/svg+xml'
-  ]
+  const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp']
 
   if (!allowedImageTypes.includes(rawFile.type)) {
-    ElMessage.error('请上传图片格式文件（JPG、PNG、GIF、BMP、WEBP、SVG）')
+    ElMessage.error('请上传JPG、PNG、GIF、BMP或WEBP图片')
     return false
   }
   return true
@@ -147,7 +156,7 @@ const beforeUploadFiles = () => {
 }
 
 // 图片上传成功回调
-const handleSuccess = (response: never) => {
+const handleSuccess = (response: string) => {
   console.log('图片上传成功', response)
   formModel.value.cover_url = response
   ElMessage.success('图片上传成功')
@@ -156,11 +165,11 @@ const handleSuccess = (response: never) => {
 // 图片上传失败的回调
 const handleError = (error: Error) => {
   console.log(error)
-  ElMessage.error('文件名已存在')
+  // 请求层已显示真实错误，保留当前表单。
 }
 
 // 文件上传成功回调
-const handleFilesSuccess = (response: never) => {
+const handleFilesSuccess = (response: string) => {
   console.log('文件上传成功', response)
   formModel.value.files_url = response
   ElMessage.success('文件上传成功')
@@ -173,8 +182,10 @@ defineExpose({
 
 // 修改提交表单方法
 const emits = defineEmits(['success'])
-const formRef = ref()
+const formRef = ref<FormInstance>()
 const onSubmit = async () => {
+  if (submitting.value || !formRef.value) return
+  submitting.value = true
   try {
     console.log('提交时的表单', formModel.value)
     // 验证表单
@@ -208,6 +219,8 @@ const onSubmit = async () => {
     emits('success')
   } catch (error) {
     console.error('提交失败:', error)
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -235,7 +248,7 @@ onMounted(async () => {
         <el-form-item label="所属分类">
           <el-cascader
             v-model="cateArray"
-            :options="cateStore.cateOptions"
+            :options="materialCateOptions"
             @change="handleCascaderChange"
           />
         </el-form-item>
@@ -251,7 +264,7 @@ onMounted(async () => {
           <div class="upload-container">
             <el-upload
               ref="uploadRef"
-              action="https://etnrve3alw.gzg.sealos.run/material-upload-cover"
+              :http-request="handleUploadCover"
               list-type="picture-card"
               :on-success="handleSuccess"
               :on-error="handleError"
@@ -270,7 +283,8 @@ onMounted(async () => {
         <el-form-item label="上传素材" prop="files_url">
           <el-upload
             ref="uploadFileRef"
-            action="https://etnrve3alw.gzg.sealos.run/material-upload-files"
+            :http-request="handleUploadFile"
+            :on-error="handleError"
             :on-exceed="handleFilesExceed"
             :before-upload="beforeUploadFiles"
             :on-success="handleFilesSuccess"
@@ -287,7 +301,11 @@ onMounted(async () => {
         </el-form-item>
         <!-- 关键词 -->
         <el-form-item label="关键词" prop="keywords">
-          <el-input v-model="formModel.keywords" placeholder="请输入一句话/多个词语"></el-input>
+          <el-input
+            v-model="formModel.keywords"
+            disabled
+            placeholder="当前后端不保存独立关键词，请使用素材名称搜索"
+          ></el-input>
         </el-form-item>
         <!--   标签     -->
         <el-form-item label="标签" prop="tags">
@@ -335,7 +353,7 @@ onMounted(async () => {
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="onSubmit">确认</el-button>
+          <el-button type="primary" :loading="submitting" @click="onSubmit">确认</el-button>
         </span>
       </template>
     </el-dialog>

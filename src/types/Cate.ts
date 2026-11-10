@@ -15,9 +15,11 @@ export interface Category {
   /** 所属层级 */
   level: number
   /** 创建时间 */
-  createdAt: Date
+  createdAt: string
   /** 更新时间 */
-  updateAt: Date
+  updateAt: string
+  /** 服务端排序值 */
+  sort: number
 }
 
 // 分类带分页请求返回

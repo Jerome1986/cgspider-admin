@@ -22,7 +22,7 @@ const userForm = ref<loginFrom>({
 const rules = reactive<FormRules<loginFrom>>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 6, max: 12, message: '用户名是6-12位', trigger: 'blur' }
+    { min: 5, max: 12, message: '用户名是5-12位', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -52,7 +52,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         // 发起登录请求
         const res = await loginApi(userForm.value.username, userForm.value.password)
         userStore.setUserInfo(res.data)
-        console.log('登录返回', res)
         ElMessage.success('登录成功')
         await router.push('/')
       } catch (err) {
@@ -75,37 +74,20 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           <h1>登录</h1>
         </el-form-item>
         <el-form-item prop="username">
-          <el-input
-            v-model="userForm.username"
-            name="username"
-            :prefix-icon="User"
-            placeholder="请输入用户名"
-          ></el-input>
+          <el-input v-model="userForm.username" name="username" :prefix-icon="User" placeholder="请输入用户名"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input
-            v-model="userForm.password"
-            @keydown.enter="submitForm(form)"
-            name="password"
-            :prefix-icon="Lock"
-            type="password"
-            placeholder="请输入密码"
-          ></el-input>
+          <el-input v-model="userForm.password" @keydown.enter="submitForm(form)" name="password" :prefix-icon="Lock"
+            type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item class="flex">
           <div class="flex">
-            <el-checkbox v-model="userStore.remenber" @change="isRemenber($event)"
-              >记住我</el-checkbox
-            >
-            <el-link type="primary" :underline="false" @click="ElMessage.warning('请联系管理员')"
-              >忘记密码？</el-link
-            >
+            <el-checkbox v-model="userStore.remenber" @change="isRemenber($event)">记住我</el-checkbox>
+            <el-link type="primary" :underline="false" @click="ElMessage.warning('请联系管理员')">忘记密码？</el-link>
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button class="button" type="primary" auto-insert-space @click="submitForm(form)"
-            >登录</el-button
-          >
+          <el-button class="button" type="primary" auto-insert-space @click="submitForm(form)">登录</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -116,21 +98,26 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 .login-page {
   height: 100vh;
   background-color: #fff;
+
   .bg {
     background: url('@/assets/bg.jpg') no-repeat center / cover;
     border-radius: 0 20px 20px 0;
   }
+
   .form {
     display: flex;
     flex-direction: column;
     justify-content: center;
     user-select: none;
+
     .title {
       margin: 0 auto;
     }
+
     .button {
       width: 100%;
     }
+
     .flex {
       width: 100%;
       display: flex;

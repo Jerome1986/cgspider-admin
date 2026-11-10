@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BaseTable from '@/components/BaseTable.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import type { UserBaseTableData } from '@/types/BaseTableData'
 import BaseFormDialog from '@/components/BaseFormDialog.vue'
 import type { RowAction } from '@/components/BaseTable.vue'
@@ -15,8 +15,11 @@ const userStore = useUserStore()
 
 // 用户列表
 const userList = ref<UserBaseTableData[]>([])
+let listVersion = 0
 const userListGet = async (role: string, pageNum: number, pageSize: number) => {
-  const res = await userListGetApi(role, pageNum, pageSize)
+  const version = ++listVersion
+  const res = await userListGetApi(role, pageNum, pageSize, searchValue.value.trim())
+  if (version !== listVersion) return
   console.log('渲染结果', res.data)
   userList.value = res.data.list
   total.value = res.data.total
@@ -24,6 +27,19 @@ const userListGet = async (role: string, pageNum: number, pageSize: number) => {
 
 // 搜索
 const searchValue = ref('')
+let searchTimer: ReturnType<typeof setTimeout>
+// 用户名在服务端筛选后分页，避免仅搜索当前页却仍显示全量总数。
+watch(searchValue, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    param.value.pageNum = 1
+    userListGet(userStore.userInfo.role, 1, param.value.pageSize).catch(() => {})
+  }, 250)
+})
+onUnmounted(() => {
+  clearTimeout(searchTimer)
+  listVersion++
+})
 const filteredUsers = computed(() => {
   const keyword = searchValue.value.trim().toLowerCase()
   if (!keyword) return userList.value
@@ -75,6 +91,7 @@ function onEditChannel(row: UserBaseTableData) {
     username: row.username,
     role: row.role as UserRole,
     coins: row.coins,
+    expectedCoins: row.coins,
     status: row.status as UserStatus
   }
   dialogVisible.value = true
@@ -87,7 +104,14 @@ const handleConfirm = async (row: UserBaseTableData) => {
     let result
     if (row._id) {
       //  编辑
-      result = await userUpdateAPi(row._id, row.role, row.username, row.coins, row.status)
+      result = await userUpdateAPi(
+        row._id,
+        row.role,
+        row.username,
+        row.coins,
+        row.status,
+        row.expectedCoins
+      )
     } else {
       //   添加
       result = await userListAddAPi(row.username, row.role, row.coins, row.status)

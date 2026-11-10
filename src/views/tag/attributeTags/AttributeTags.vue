@@ -179,11 +179,17 @@ onMounted(async () => {
       @current-change="handleCurrentChange"
     >
       <template #extra>
-        <div style="display: flex">
-          <TypeHeader @changeType="handleChangeType"></TypeHeader>
-          <el-button type="primary" @click="onAddChannel">添加标签</el-button>
+        <div class="tag-toolbar">
+          <div class="tag-actions">
+            <TypeHeader @changeType="handleChangeType"></TypeHeader>
+            <el-button type="primary" @click="onAddChannel">添加标签</el-button>
+          </div>
+          <SearchPage
+            class="tag-search"
+            @search="handleSearch"
+            @clear="handleClearSearch"
+          ></SearchPage>
         </div>
-        <SearchPage @search="handleSearch" @clear="handleClearSearch"></SearchPage>
       </template>
     </BaseTable>
 

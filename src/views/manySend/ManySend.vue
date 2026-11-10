@@ -2,7 +2,7 @@
 import PageContainer from '@/components/PageContainer.vue'
 import { computed, onMounted, ref } from 'vue'
 import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
-import axios from 'axios'
+import { uploadAsset } from '@/utils/request'
 import { materialAddOneApi } from '@/api/materia.ts'
 import TagList from './TagList.vue'
 import { menuList } from '@/conifg/menu.ts'
@@ -55,9 +55,8 @@ const subCateList = computed(() =>
   allCateList.value.filter((item) => item.level === 2 && item.parentId === selectedTopCateId.value)
 )
 
-const thirdCateList = computed(() =>
-  allCateList.value.filter((item) => item.level === 3 && item.parentId === selectedSubCateId.value)
-)
+// 当前素材模型只关联一、二级分类，三级仍可在分类管理中维护。
+const thirdCateList = computed<Category[]>(() => [])
 
 // 根据页面类型获取所有分类（优化为一次性获取）
 const getTopCateList = async () => {
@@ -157,7 +156,7 @@ const fileGroups = computed(() => {
 
   fileList.value.forEach((file) => {
     // 提取文件名（不含扩展名）作为分组依据
-    const fileName = file.name.split('.')[0]
+    const fileName = file.name.replace(/\.[^.]+$/, '')
     if (fileName) {
       if (!groups[fileName]) {
         groups[fileName] = []
@@ -179,7 +178,7 @@ const groupedFiles = computed(() =>
 
 // 移除整个文件夹
 const handleRemoveFolder = (folderName: string) => {
-  fileList.value = fileList.value.filter((file) => file.name.split('.')[0] !== folderName)
+  fileList.value = fileList.value.filter((file) => file.name.replace(/\.[^.]+$/, '') !== folderName)
 }
 
 // 添加上传队列状态管理
@@ -219,33 +218,19 @@ const uploadFile = async (
   retryCount = 0
 ): Promise<string> => {
   try {
-    const formData = new FormData()
-    formData.append('file', file.raw)
-
-    // 添加分类信息
-    formData.append('type', pageType.value)
-    formData.append('topCate', selectedTopCateId.value)
-    formData.append('subCate', selectedSubCateId.value || '')
-    formData.append('folderName', folderName)
-
     // 设置当前正在上传的文件
     uploadStatus.value.currentFile = file.name
     uploadStatus.value.currentProgress = 0
 
     // 发送上传请求，添加进度监控
-    const response = await axios.post(
-      'https://etnrve3alw.gzg.sealos.run/material-upload-files',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            uploadStatus.value.currentProgress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            )
-          }
+    const response = await uploadAsset(
+      file.raw,
+      /\.(?:png|jpe?g|gif|webp|bmp)$/i.test(file.name),
+      (progressEvent) => {
+        if (progressEvent.total) {
+          uploadStatus.value.currentProgress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          )
         }
       }
     )
@@ -253,7 +238,7 @@ const uploadFile = async (
     // 上传成功
     uploadStatus.value.success++
     uploadStatus.value.currentProgress = 100
-    return response.data
+    return response
   } catch (error) {
     console.error('上传文件失败:', error)
     if (retryCount < 3) {
@@ -264,8 +249,6 @@ const uploadFile = async (
     }
     uploadStatus.value.failed++
     throw error
-  } finally {
-    uploadStatus.value.current++
   }
 }
 
@@ -319,6 +302,7 @@ const uploadFilesSequentially = async (folderGroups: Record<string, typeof fileL
       uploadResults.push(item.result)
       failedUploads.value.push(item)
     }
+    uploadStatus.value.current++
     // 每个文件上传完成后等待一小段时间，确保UI更新
     await new Promise((resolve) => setTimeout(resolve, 100))
   }
@@ -472,9 +456,13 @@ const handleSend = async (isRetry = false) => {
           folderName, // en_name - 必填，使用文件夹名作为英文名
           coverFile.url, // cover_url - 必填
           group.files
-            .filter((result) => result !== coverFile && result.success && result.url)
-            .map((result) => result.url as string)
-            .join(','), // files_url
+            .filter(
+              (result) =>
+                !/\.(?:png|jpe?g|gif|webp|bmp)$/i.test(result.fileName) &&
+                result.success &&
+                result.url
+            )
+            .map((result) => result.url as string), // files_url保留数组
           activeTagIds.value, // aittributeTags
           [], // colorTags
           pageType.value // type - 必填
@@ -490,6 +478,12 @@ const handleSend = async (isRetry = false) => {
     }
 
     // 显示最终结果
+    // 成功组立即从队列移除，部分失败后再次发布不会重复创建成功素材。
+    const completed = new Set(successFoldersList)
+    fileList.value = fileList.value.filter(
+      (file) => !completed.has(file.name.replace(/\.[^.]+$/, ''))
+    )
+    uploadQueue.value = uploadQueue.value.filter((item) => !completed.has(item.folderName))
     if (uploadStatus.value.failed === 0 && publishFailCount === 0) {
       // 全部成功
       resultTips.value = {
@@ -524,7 +518,7 @@ const handleSend = async (isRetry = false) => {
 
       // 保持失败的文件在列表中
       fileList.value = fileList.value.filter((file) => {
-        const folderName = file.name.split('.')[0]
+        const folderName = file.name.replace(/\.[^.]+$/, '')
         return folderName && failedFolders.has(folderName)
       })
 

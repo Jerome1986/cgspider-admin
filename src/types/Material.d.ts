@@ -1,6 +1,6 @@
 // 素材项类型
 export interface MaterialItem {
-  /** 唯一标识 (MongoDB _id) */
+  /** 服务端整数编号序列化为字符串 */
   _id: string
   /** 中文名或原始名 */
   name: string
@@ -10,6 +10,8 @@ export interface MaterialItem {
   cover_url: string
   /** 文件下载地址数组 */
   files_url: string
+  /** 编辑前完整文件数组，未替换上传时原样保留 */
+  fileUrls?: string[]
   /** 一级分类ID */
   top_id?: string
   /** 二级分类ID */
@@ -32,6 +34,19 @@ export interface MaterialItem {
   createAt?: string
   /** 更新时间 (ISO 格式) */
   updateAt?: string
+}
+
+/** 管理端素材原始响应，属性存名称、颜色存色值、文件可为数组。 */
+export type ServerMaterial = Omit<
+  MaterialItem,
+  'files_url' | 'fileUrls' | 'aittributeTags' | 'colorTags' | 'keywords'
+> & {
+  /** 全部下载文件地址 */
+  files_url: string | string[]
+  /** 属性名称 */
+  tags: string[]
+  /** 十六进制颜色 */
+  colors: string[]
 }
 
 export interface MaterialPageResult {

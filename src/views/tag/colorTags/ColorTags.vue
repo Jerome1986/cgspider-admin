@@ -101,9 +101,11 @@ onMounted(async () => {
 <template>
   <page-container title="颜色标签">
     <template #extra>
-      <TypeHeader @changeType="handleChangeType"></TypeHeader>
-      <div class="addCate" style="margin-top: 20px; text-align: end">
-        <el-button type="primary" @click="onAddChannel">添加颜色</el-button>
+      <div class="tag-toolbar">
+        <div class="tag-actions">
+          <TypeHeader @changeType="handleChangeType"></TypeHeader>
+          <el-button type="primary" @click="onAddChannel">添加颜色</el-button>
+        </div>
       </div>
     </template>
 

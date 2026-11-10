@@ -2,6 +2,8 @@
 
 This template should help get you started developing with Vue 3 in Vite.
 
+当前后台已对接相邻 `cgs-api`。开发环境连接 `http://localhost:3000`，生产构建连接 `https://api.topcg.top`；具体契约、测试和部署注意事项见 [API-INTEGRATION.md](./API-INTEGRATION.md)。
+
 ## Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).

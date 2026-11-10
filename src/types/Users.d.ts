@@ -3,7 +3,7 @@
 // 用户角色类型
 import type { UserBaseTableData } from '@/types/BaseTableData'
 
-export type UserRole = 'admin' | 'user' | 'vip'
+export type UserRole = 'admin' | 'user' | 'vip' | 'annual' | 'permanent'
 
 // 用户状态类型
 export type UserStatus = 0 | 1 // 0: 禁用, 1: 启用

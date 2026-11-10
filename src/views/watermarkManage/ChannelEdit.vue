@@ -2,11 +2,16 @@
 import { ref, computed } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import type { UploadProps, FormInstance } from 'element-plus'
+import { uploadAsset } from '@/utils/request'
 import type { images, WatermarkEditForm } from '@/types/Watermark.ts'
 import { WatermarkAddApi, watermarkEditApi } from '@/api/watermark.ts'
 
 // 弹窗控制
 const dialogVisible = ref(false)
+const submitting = ref(false)
+const formRef = ref<FormInstance>()
+const handleUpload: UploadProps['httpRequest'] = (options) => uploadAsset(options.file, true)
 
 // 默认表单
 const formModel = ref<WatermarkEditForm>({
@@ -30,7 +35,7 @@ const imagesList = ref<images[]>([])
 const open = (row: WatermarkEditForm) => {
   dialogVisible.value = true
   console.log(row)
-  formModel.value = row
+  formModel.value = { _id: row._id || '', name: row.name || '', images: row.images || '' }
   // 图片回显
   if (row.images) {
     imagesList.value = [
@@ -59,12 +64,18 @@ const handleSuccess = (response: string) => {
 // 图片上传失败
 const handleError = (error: Error) => {
   console.log(error)
-  ElMessage.error('文件名已存在')
+  // 请求层已统一显示上传错误。
 }
 
 // 提交
 const emits = defineEmits(['onSuccess'])
 const onSubmit = async () => {
+  if (submitting.value) return
+  if (!formModel.value.name.trim() || !formModel.value.images) {
+    ElMessage.warning('请填写水印名称并上传图片')
+    return
+  }
+  submitting.value = true
   console.log('提交', formModel.value)
 
   try {
@@ -88,6 +99,8 @@ const onSubmit = async () => {
     emits('onSuccess')
   } catch (error) {
     console.log(error)
+  } finally {
+    submitting.value = false
   }
 }
 </script>
@@ -104,7 +117,7 @@ const onSubmit = async () => {
           <div class="upload-container">
             <el-upload
               ref="uploadRef"
-              action="https://etnrve3alw.gzg.sealos.run/material-upload-cover"
+              :http-request="handleUpload"
               list-type="picture-card"
               :on-success="handleSuccess"
               :on-error="handleError"
@@ -121,7 +134,7 @@ const onSubmit = async () => {
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="onSubmit">确认</el-button>
+          <el-button type="primary" :loading="submitting" @click="onSubmit">确认</el-button>
         </span>
       </template>
     </el-dialog>

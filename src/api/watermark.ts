@@ -1,9 +1,10 @@
 import { request } from '@/utils/request.ts'
+import type { ServerPage } from '@/types/Api'
 import type {
   WatermarkAddResult,
   WatermarkDeleteResult,
   WatermarkEditResult,
-  WatermarkPageResult
+  WatermarkEditForm
 } from '@/types/Watermark.ts'
 
 /**
@@ -13,12 +14,16 @@ import type {
  * @param pageSize
  * @constructor
  */
-export const WatermarkGetApi = (pageNum: number, pageSize: number) => {
-  return request<WatermarkPageResult>({
+export const WatermarkGetApi = async (pageNum: number, pageSize: number) => {
+  const result = await request<ServerPage<WatermarkEditForm>>({
     method: 'GET',
-    url: '/watermark-get',
-    params: { pageNum, pageSize }
+    url: '/api/watermark-get',
+    params: { pagesNum: pageNum, pagesSize: pageSize }
   })
+  return {
+    ...result,
+    data: { ...result.data, pageNum, pageSize, totalPages: Math.ceil(result.data.total / pageSize) }
+  }
 }
 
 /**
@@ -30,7 +35,7 @@ export const WatermarkGetApi = (pageNum: number, pageSize: number) => {
 export const WatermarkAddApi = (name: string, images: string) => {
   return request<WatermarkAddResult>({
     method: 'POST',
-    url: '/watermark-add',
+    url: '/api/watermark-add',
     data: { name, images }
   })
 }
@@ -45,7 +50,7 @@ export const WatermarkAddApi = (name: string, images: string) => {
 export const watermarkEditApi = (watermarkId: string, name: string, images: string) => {
   return request<WatermarkEditResult>({
     method: 'POST',
-    url: '/watermark-update',
+    url: '/api/watermark-update',
     data: { watermarkId, name, images }
   })
 }
@@ -58,7 +63,7 @@ export const watermarkEditApi = (watermarkId: string, name: string, images: stri
 export const watermarkDeleteApi = (watermarkId: string) => {
   return request<WatermarkDeleteResult>({
     method: 'POST',
-    url: '/watermark-del',
+    url: '/api/watermark-del',
     data: { watermarkId }
   })
 }
