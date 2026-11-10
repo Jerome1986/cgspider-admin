@@ -22,12 +22,8 @@ const tagStore = useTagStore()
 
 const dialogVisible = ref(false)
 const submitting = ref(false)
-const materialCateOptions = computed(() =>
-  cateStore.cateOptions.map((node) => ({
-    ...node,
-    children: node.children?.map((child) => ({ ...child, children: undefined }))
-  }))
-)
+// 素材分类选择保留完整三级树。
+const materialCateOptions = computed(() => cateStore.cateOptions)
 const handleUploadCover: UploadProps['httpRequest'] = (options) => uploadAsset(options.file, true)
 const handleUploadFile: UploadProps['httpRequest'] = (options) => uploadAsset(options.file, false)
 

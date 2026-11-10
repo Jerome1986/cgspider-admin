@@ -72,7 +72,8 @@ export const addCateApi = (
   type: string,
   parentId: string | null = null,
   _parentName = '',
-  _level = 1
+  _level = 1,
+  sort = 0
 ) =>
   request({
     url: '/api/categories',
@@ -81,17 +82,18 @@ export const addCateApi = (
       name,
       enName: en_name,
       type,
-      sort: 0,
+      sort,
       ...(parentId ? { parentId: Number(parentId) } : {})
     }
   })
-/** 编辑仅允许名称；类型、父级和排序不隐式改变。 */
+/** 编辑名称与排序，未传排序时保留原值，类型及父级不可隐式改变。 */
 export const cateEditApi = (
   id: string,
   name: string,
   en_name: string,
   type: string | null,
-  parentId: string | null = null
+  parentId: string | null = null,
+  sort?: number
 ) => {
   const original = originals.get(id)
   if (!original) throw new Error('请刷新分类列表后重试')
@@ -100,7 +102,7 @@ export const cateEditApi = (
   return request({
     url: '/api/categories/' + id,
     method: 'PATCH',
-    data: { name, enName: en_name, sort: original.sort }
+    data: { name, enName: en_name, sort: sort ?? original.sort }
   })
 }
 /** 删除叶子分类，关联校验由后端执行。 */

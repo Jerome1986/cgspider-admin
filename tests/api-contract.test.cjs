@@ -5,6 +5,46 @@ const path = require('node:path')
 const vm = require('node:vm')
 const ts = require('typescript')
 const root = path.resolve(__dirname, '..')
+test('批量发布显示木纹下的三级分类，切换父级后清空旧选择', async () => {
+  const source = fs.readFileSync(path.join(root, 'src/views/manySend/ManySend.vue'), 'utf8')
+    .split('<script setup lang="ts">')[1].split('</script>')[0]
+  const code = ts.transpileModule(source + '\nexport { getTopCateList, thirdCateList, selectedThirdCateId, handleTopCateChange, handleSubCateChange }', {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS }
+  }).outputText
+  let calls = 0
+  const imports = {
+    '@/utils/request': {}, '@/api/materia.ts': {}, '@/conifg/menu.ts': {},
+    vue: { ref: (value) => ({ value }), computed: (get) => ({ get value() { return get() } }), onMounted: () => {} },
+    'element-plus': { ElMessage: { error: (message) => { throw Error(message) } } },
+    '@/stores': { useMenuStore: () => ({ currentMenu: '材质' }), useTagStore: () => ({}) },
+    '@/api/cate': { cateAllApi: async () => {
+      calls++
+      return { data: [
+        { _id: '1', name: '木材', level: 1, parentId: null },
+        { _id: '2', name: '木纹', level: 2, parentId: '1' },
+        { _id: '3', name: '橡木', level: 3, parentId: '2' },
+        { _id: '4', name: '其他', level: 3, parentId: '99' }
+      ] }
+    } }
+  }
+  const exports = {}
+  vm.runInNewContext(code, { exports, console, require: (name) => {
+    if (!(name in imports)) throw Error('Unexpected import: ' + name)
+    return imports[name]
+  } })
+  await exports.getTopCateList()
+  assert.equal(calls, 1)
+  exports.handleTopCateChange('1')
+  exports.handleSubCateChange('2')
+  assert.equal(exports.thirdCateList.value.length, 1)
+  assert.equal(exports.thirdCateList.value[0].name, '橡木')
+  exports.selectedThirdCateId.value = '3'
+  exports.handleSubCateChange('99')
+  assert.equal(exports.selectedThirdCateId.value, '')
+  assert.equal(exports.thirdCateList.value[0]._id, '4')
+  exports.handleTopCateChange('1')
+  assert.equal(exports.thirdCateList.value.length, 0)
+})
 function load(file, imports) {
   const source = fs.readFileSync(path.join(root, file), 'utf8').replace('import.meta.env.VITE_API_BASE_URL', "'http://localhost:3000'")
   const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText
@@ -42,6 +82,10 @@ test('分类树映射字符串ID、按父级分页，编辑保留排序，禁止
   await api.addCateApi('子级', 'Child', '模型', '1', '父级', 2)
   assert.equal(calls.at(-1).data.parentId, 1)
   assert.equal(calls.at(-1).data.level, undefined)
+  await api.addCateApi('三级', 'Third', '模型', '2', '', 3, 12)
+  assert.equal(calls.at(-1).data.sort, 12)
+  await api.cateEditApi('2', '二级', 'Child', null, '1', 3)
+  assert.equal(calls.at(-1).data.sort, 3)
 })
 
 test('素材编辑保留全部文件、将属性ID转换名称，新增不拼接文件地址', async () => {
@@ -59,7 +103,10 @@ test('素材编辑保留全部文件、将属性ID转换名称，新增不拼接
   assert.equal(body.keywords, undefined)
   assert.equal(body.aittributeTags, undefined)
   assert.equal(calls.at(-1).method, 'PUT')
-  await assert.rejects(api.materialAddOneApi('1', '', '3', 'x', 'X', 'https://example.com/c.png', ['https://example.com/a.zip'], [], [], '模型'), /二级/)
+  await api.materialAddOneApi('1', '2', '3', 'x', 'X', 'https://example.com/c.png', ['https://example.com/a.zip'], [], [], '模型')
+  assert.equal(calls.at(-1).data.third_id, '3')
+  await api.materialUpdateApi({ ...page.data.list[0], sub_id: '2', third_id: '3' })
+  assert.equal(calls.at(-1).data.third_id, '3')
 })
 
 test('余额调整带原值，启禁用独立调用，缺失原值拒绝写入', async () => {

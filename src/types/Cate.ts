@@ -33,6 +33,8 @@ export interface CategoryPageResult {
 
 // 弹窗表单模型类型
 export interface CateEditForm {
+  /** 分类排序值，越小越靠前 */
+  sort?: number
   /** 分类ID */
   _id?: string
   /** 分类名称 */

@@ -71,13 +71,13 @@ const handleCurrentChange = async (current: number) => {
 }
 
 // 表单默认值
-const editForm = ref<CateEditForm>({ _id: '', name: '', en_name: '', type: '' })
+const editForm = ref<CateEditForm>({ _id: '', name: '', en_name: '', type: '', sort: 0 })
 // 表单title
 const dialogTitle = ref<string>('')
 
 // 编辑
 function onEditChannel(row: CateEditForm) {
-  editForm.value = { ...row }
+  editForm.value = { ...row, sort: row.sort ?? 0 }
   console.log(editForm.value)
   dialogTitle.value = '编辑分类'
   dialogVisible.value = true
@@ -89,7 +89,7 @@ const handleConfirm = async (row: CateEditForm) => {
   console.log('提交', row)
   try {
     if (row._id) {
-      const result = await cateEditApi(row._id, row.name, row.en_name, null, row.parentId)
+      const result = await cateEditApi(row._id, row.name, row.en_name, null, row.parentId, row.sort)
       // 将类型同步
       menuStore.setCurrentMenu(row.type)
       // 操作完重新获取数据
@@ -102,7 +102,7 @@ const handleConfirm = async (row: CateEditForm) => {
       )
 
       ElMessage.success(result!.message)
-      editForm.value = { _id: '', name: '', en_name: '', type: '' }
+      editForm.value = { _id: '', name: '', en_name: '', type: '', sort: 0 }
     }
   } catch (error) {
     console.error(error)

@@ -73,7 +73,13 @@ const handleCurrentChange = async (current: number) => {
 }
 
 // 表单默认值
-const editForm = ref<CateEditForm>({ _id: '', name: '', en_name: '', type: '' })
+const editForm = ref<CateEditForm>({
+  _id: '',
+  name: '',
+  en_name: '',
+  type: '',
+  sort: 0
+})
 // 表单title
 const dialogTitle = ref<string>('')
 
@@ -84,6 +90,7 @@ const onAddSubChannel = (row: CateEditForm) => {
     name: '',
     en_name: '',
     type: row.type,
+    sort: 0,
     parentName: row.name
   }
   console.log('ddd', editForm.value)
@@ -93,7 +100,7 @@ const onAddSubChannel = (row: CateEditForm) => {
 
 // 编辑
 function onEditChannel(row: CateEditForm) {
-  editForm.value = { ...row }
+  editForm.value = { ...row, sort: row.sort ?? 0 }
   console.log(editForm.value)
   dialogTitle.value = '编辑分类'
   dialogVisible.value = true
@@ -108,11 +115,20 @@ const handleConfirm = async (row: CateEditForm) => {
     switch (dialogTitle.value) {
       case '编辑分类':
         console.log('编辑')
-        if (row._id) result = await cateEditApi(row._id, row.name, row.en_name, null, row.parentId)
+        if (row._id)
+          result = await cateEditApi(row._id, row.name, row.en_name, null, row.parentId, row.sort)
         break
       case '新增子级分类':
         console.log('zi')
-        result = await addCateApi(row.name, row.en_name, row.type, row._id, row.parentName, 3)
+        result = await addCateApi(
+          row.name,
+          row.en_name,
+          row.type,
+          row._id,
+          row.parentName,
+          3,
+          row.sort ?? 0
+        )
         break
     }
     // 将类型同步
@@ -126,7 +142,7 @@ const handleConfirm = async (row: CateEditForm) => {
       cateStore.topCateCurrentId
     )
     ElMessage.success(result!.message)
-    editForm.value = { _id: '', name: '', en_name: '', type: '' }
+    editForm.value = { _id: '', name: '', en_name: '', type: '', sort: 0 }
   } catch (err) {
     console.error(err)
   } finally {
@@ -161,9 +177,27 @@ function onDelChannel(row: CateEditForm) {
 
 // 表格操作项配置
 const actions: RowAction[] = [
-  { icon: FolderAdd, type: 'success', circle: true, plain: true, onClick: onAddSubChannel },
-  { icon: Edit, type: 'primary', circle: true, plain: true, onClick: onEditChannel },
-  { icon: Delete, type: 'danger', circle: true, plain: true, onClick: onDelChannel }
+  {
+    icon: FolderAdd,
+    type: 'success',
+    circle: true,
+    plain: true,
+    onClick: onAddSubChannel
+  },
+  {
+    icon: Edit,
+    type: 'primary',
+    circle: true,
+    plain: true,
+    onClick: onEditChannel
+  },
+  {
+    icon: Delete,
+    type: 'danger',
+    circle: true,
+    plain: true,
+    onClick: onDelChannel
+  }
 ]
 
 // 处理类型的改变，根据类型渲染分类

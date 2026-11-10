@@ -6,7 +6,8 @@ import { uploadAsset } from '@/utils/request'
 import { materialAddOneApi } from '@/api/materia.ts'
 import TagList from './TagList.vue'
 import { menuList } from '@/conifg/menu.ts'
-import { useCateStore, useMenuStore, useTagStore } from '@/stores'
+import { useMenuStore, useTagStore } from '@/stores'
+import { cateAllApi } from '@/api/cate'
 import type { Category } from '@/types/Cate'
 
 // 定义标签激活状态接口
@@ -18,7 +19,6 @@ interface OptionWithActive {
 
 // 定义 stores
 const menuStore = useMenuStore()
-const cateStore = useCateStore()
 const tagStore = useTagStore()
 
 // 页面类型
@@ -55,28 +55,21 @@ const subCateList = computed(() =>
   allCateList.value.filter((item) => item.level === 2 && item.parentId === selectedTopCateId.value)
 )
 
-// 当前素材模型只关联一、二级分类，三级仍可在分类管理中维护。
-const thirdCateList = computed<Category[]>(() => [])
+// 只显示当前二级分类的直属三级分类。
+const thirdCateList = computed(() =>
+  allCateList.value.filter((item) => item.level === 3 && item.parentId === selectedSubCateId.value)
+)
 
-// 根据页面类型获取所有分类（优化为一次性获取）
+// 一次读取完整分类树，切换类型后忽略旧请求。
+let categoryRequestVersion = 0
 const getTopCateList = async () => {
+  const version = ++categoryRequestVersion
+  allCateList.value = []
   try {
-    // 只获取一级分类
-    await cateStore.topCateListGet(pageType.value, 1, 999)
-    allCateList.value = [...cateStore.topCateList]
-
-    // 批量获取所有二级和三级分类
-    for (const topCate of cateStore.topCateList) {
-      await cateStore.cateListGet(pageType.value, 1, 999, 2, topCate._id)
-      allCateList.value.push(...cateStore.subCateList)
-
-      // 获取三级分类
-      for (const subCate of cateStore.subCateList) {
-        await cateStore.cateListGet(pageType.value, 1, 999, 3, subCate._id)
-        allCateList.value.push(...cateStore.thirdCateList)
-      }
-    }
+    const res = await cateAllApi(pageType.value)
+    if (version === categoryRequestVersion) allCateList.value = res.data
   } catch (error) {
+    if (version !== categoryRequestVersion) return
     console.error('获取分类失败:', error)
     ElMessage.error('获取分类失败')
   }

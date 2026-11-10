@@ -41,13 +41,13 @@ export const materiaGetApi = async (
   }
   return { ...res, data }
 }
-/** 新增和更新统一构造白名单，不把第三分类或旧keywords发送给后端。 */
+/** 新增和更新统一构造白名单，支持三级分类，不发送旧keywords。 */
 const payload = async (row: MaterialItem) => {
-  if (row.third_id) throw new Error('当前后端素材只支持一级和二级分类')
   const dictionary = await aittribuleAllApi(row.type)
   return {
     top_id: row.top_id,
     sub_id: row.sub_id || '',
+    third_id: row.third_id || '',
     name: row.name,
     en_name: row.en_name || '',
     cover_url: row.cover_url,

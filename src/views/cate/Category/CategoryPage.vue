@@ -42,12 +42,18 @@ const handleCurrentChange = async (current: number) => {
 }
 
 // 表单默认值
-const editForm = ref<CateEditForm>({ _id: '', name: '', en_name: '', type: '' })
+const editForm = ref<CateEditForm>({
+  _id: '',
+  name: '',
+  en_name: '',
+  type: '',
+  sort: 0
+})
 // 表单title
 const dialogTitle = ref<string>('')
 // 新增
 async function onAddChannel() {
-  editForm.value = { _id: '', name: '', en_name: '', type: '' }
+  editForm.value = { _id: '', name: '', en_name: '', type: '', sort: 0 }
   dialogTitle.value = '新增分类'
   dialogVisible.value = true
   // 设置弹窗根据dialogTitle显示不同的字段
@@ -62,6 +68,7 @@ const onAddSubChannel = (row: CateEditForm) => {
     name: '',
     en_name: '',
     type: row.type,
+    sort: 0,
     parentName: row.name
   }
   console.log('ddd', editForm.value)
@@ -73,8 +80,9 @@ const onAddSubChannel = (row: CateEditForm) => {
 
 // 编辑
 function onEditChannel(row: CateEditForm) {
-  editForm.value = { ...row }
+  editForm.value = { ...row, sort: row.sort ?? 0 }
   dialogTitle.value = '编辑分类'
+  setFormFields(dialogTitle.value)
   dialogVisible.value = true
 }
 
@@ -86,18 +94,33 @@ const handleConfirm = async (row: CateEditForm) => {
     let result
     switch (dialogTitle.value) {
       case '新增分类':
-        result = await addCateApi(row.name, row.en_name, row.type)
+        result = await addCateApi(row.name, row.en_name, row.type, null, '', 1, row.sort ?? 0)
         console.log('提交结果', result)
         // 重置分页
         param.value.pageNum = 1
         break
       case '编辑分类':
         if (row._id)
-          result = await cateEditApi(row._id, row.name, row.en_name, menuStore.currentMenu)
+          result = await cateEditApi(
+            row._id,
+            row.name,
+            row.en_name,
+            menuStore.currentMenu,
+            null,
+            row.sort
+          )
         break
       case '新增子级分类':
         if (row._id)
-          result = await addCateApi(row.name, row.en_name, row.type, row._id, row.parentName, 2)
+          result = await addCateApi(
+            row.name,
+            row.en_name,
+            row.type,
+            row._id,
+            row.parentName,
+            2,
+            row.sort ?? 0
+          )
         break
     }
     // 将类型同步
@@ -105,7 +128,7 @@ const handleConfirm = async (row: CateEditForm) => {
     ElMessage.success(result!.message)
     // 操作完重新获取数据
     await cateStore.cateListGet(row.type, param.value.pageNum, param.value.pageSize)
-    editForm.value = { _id: '', name: '', en_name: '', type: '' }
+    editForm.value = { _id: '', name: '', en_name: '', type: '', sort: 0 }
   } catch (err) {
     console.error(err)
   } finally {
@@ -133,9 +156,27 @@ function onDelChannel(row: CateEditForm) {
 
 // 表格操作项配置
 const actions: RowAction[] = [
-  { icon: FolderAdd, type: 'success', circle: true, plain: true, onClick: onAddSubChannel },
-  { icon: Edit, type: 'primary', circle: true, plain: true, onClick: onEditChannel },
-  { icon: Delete, type: 'danger', circle: true, plain: true, onClick: onDelChannel }
+  {
+    icon: FolderAdd,
+    type: 'success',
+    circle: true,
+    plain: true,
+    onClick: onAddSubChannel
+  },
+  {
+    icon: Edit,
+    type: 'primary',
+    circle: true,
+    plain: true,
+    onClick: onEditChannel
+  },
+  {
+    icon: Delete,
+    type: 'danger',
+    circle: true,
+    plain: true,
+    onClick: onDelChannel
+  }
 ]
 
 // 处理类型的改变，根据类型渲染分类
